@@ -1,13 +1,13 @@
 import React, {useState} from 'react'
 import Image from 'next/image'
-import hangman0 from '../public/images/hangman-0.png'
-import hangman1 from '../public/images/hangman-1.png'
-import hangman2 from '../public/images/hangman-2.png'
-import hangman3 from '../public/images/hangman-3.png'
-import hangman4 from '../public/images/hangman-4.png'
-import hangman5 from '../public/images/hangman-5.png'
-import hangman6 from '../public/images/hangman-6.png'
-import hangman7 from '../public/images/hangman-7.png'
+import hangman0 from './images/hangman-0.png'
+import hangman1 from './images/hangman-1.png'
+import hangman2 from './images/hangman-2.png'
+import hangman3 from './images/hangman-3.png'
+import hangman4 from './images/hangman-4.png'
+import hangman5 from './images/hangman-5.png'
+import hangman6 from './images/hangman-6.png'
+import hangman7 from './images/hangman-7.png'
 
 
 
