@@ -1,6 +1,6 @@
 import React, {useState} from 'react'
 import Image from 'next/image'
-import hangman1 from '/images/hangman-1.png'
+// import hangman1 from '/images/hangman-1.png'
 // import hangman2 from '/images/hangman-2'
 // import hangman3 from '/images/hangman-3'
 // import hangman4 from '/images/hangman-4'
@@ -17,7 +17,7 @@ export default function HangmanFigure(props) {
   return (
     <div className='hangman-figure'>
         <Image src={`/images/hangman-${index}.png`} alt='hangman figure' width="400" height='400'/>
-        <Image src={hangman1} alt='hello' height='100' width='100' />
+        {/* <Image src={hangman1} alt='hello' height='100' width='100' /> */}
 
     </div>
   )
