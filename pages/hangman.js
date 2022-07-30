@@ -13,9 +13,7 @@ export const word = getWord()
 export default function Hangman() {
 
 
- const selectWord = () => {
 
-  } 
     //sets challenge word
     const [gameWord, setGameWord] = useState(word)
     
@@ -62,10 +60,12 @@ export default function Hangman() {
 
       //grab letter variable
       let letter = e.target.value
+      
       // console.log(letter)
 
       //disable button after guess
       e.target.disabled = true
+      e.target.className += ' disabled'
 
       //keeps track of all guesses
       setGuesses((guesses) => [...guesses, letter])
@@ -83,7 +83,10 @@ export default function Hangman() {
         setGuesses([])
         setModalShow(false)
         const buttons = document.querySelectorAll(".letter-button")
-        buttons.forEach((button) => button.disabled = false)
+        buttons.forEach((button) => {
+                                      button.disabled = false
+                                      button.className = 'letter-button mb-1'
+                                    })
         setGameWord(getWord())
     }
 
