@@ -15,6 +15,88 @@ a {
   box-sizing: border-box;
 }
 
+#nav {
+  justify-content: center;
+  text-transform: uppercase;
+}
+
+.start-button {
+  width: 20%;
+  height: 5%;
+  background-color: blue;
+}
+
+.start-button-div {
+  text-align: center;
+}
+.hangman-figure {
+  text-align: center;
+}
+
+.button-row {
+  justify-content: center;
+  text-align: center;
+  padding: 0% 15%;
+}
+
+#button-container {
+  padding-left: 10%;
+  padding-right: 10%;
+}
+.word {
+  display: flex;
+  justify-content: center;
+
+}
+
+.word-container {
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.letter {
+  border-bottom: 3px solid blue;
+  display: inline-flex;
+  font-size: 30px;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+  margin: 0 3px;
+  height: 50px;
+  width: 20px;
+}
+
+.letter-button {
+  width: 40px;
+  height: 40px;
+  background-color: blue;
+}
+
+.letter-button-col {
+  margin: 1px 1px;
+  padding: 0px 0px;
+}
+
+
+.game-over-modal {
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+}
+
+.game-won {
+  color: green;
+}
+
+.game-loss {
+  color: red;
+}
+#modal-footer-button {
+  justify-content: center;
+}
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
