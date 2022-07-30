@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Row, Col, Container } from 'react-bootstrap'
-import Header from '../components/header'
+import Header from '../components/Header'
 import Nav from '../components/Nav'
 import HangmanFigure from '../components/HangmanFigure'
 import LetterButton from '../components/LetterButton'
