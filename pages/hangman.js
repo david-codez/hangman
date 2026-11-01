@@ -6,27 +6,29 @@ import HangmanFigure from '../components/HangmanFigure'
 import LetterButton from '../components/LetterButton'
 import Word from '../components/Word'
 import GameEndModal from '../components/GameEndModal'
+import ScoreCounter from '../components/ScoreCounter'
 import {
   ALPHABET,
-  DEFAULT_DIFFICULTY,
-  DIFFICULTIES,
+  ANY_CATEGORY,
+  CATEGORIES,
   MAX_WRONG_GUESSES,
   applyGuess,
   getGameStatus,
   getLetterStatus,
   getWrongGuesses,
 } from '../lib/game.mjs'
-import { EMPTY_STREAK, loadStreak, nextStreak, saveStreak } from '../lib/streak.mjs'
+import { EMPTY_STATS, loadStats, nextStats, saveStats } from '../lib/stats.mjs'
 
 export default function Hangman() {
-  const [difficulty, setDifficulty] = useState(DEFAULT_DIFFICULTY)
+  const [selectedCategory, setSelectedCategory] = useState(ANY_CATEGORY)
   const [gameWord, setGameWord] = useState(null)
+  const [wordCategory, setWordCategory] = useState(null)
   const [guesses, setGuesses] = useState([])
   const [loadError, setLoadError] = useState(null)
-  const [streak, setStreak] = useState(EMPTY_STREAK)
+  const [stats, setStats] = useState(EMPTY_STATS)
   const pendingRequest = useRef(null)
 
-  const startNewGame = useCallback(async (selectedDifficulty) => {
+  const startNewGame = useCallback(async (category) => {
     pendingRequest.current?.abort()
     const controller = new AbortController()
     pendingRequest.current = controller
@@ -35,12 +37,13 @@ export default function Hangman() {
     setGuesses([])
     setLoadError(null)
     try {
-      const response = await fetch(`/api/word?difficulty=${selectedDifficulty}`, { signal: controller.signal })
+      const response = await fetch(`/api/word?category=${category}`, { signal: controller.signal })
       if (!response.ok) {
         throw new Error(`Word request failed with status ${response.status}`)
       }
-      const { word } = await response.json()
+      const { word, category: chosenCategory } = await response.json()
       setGameWord(word)
+      setWordCategory(chosenCategory)
     } catch (error) {
       if (error.name === 'AbortError') {
         return
@@ -51,8 +54,8 @@ export default function Hangman() {
   }, [])
 
   useEffect(() => {
-    setStreak(loadStreak())
-    startNewGame(DEFAULT_DIFFICULTY)
+    setStats(loadStats())
+    startNewGame(ANY_CATEGORY)
     return () => pendingRequest.current?.abort()
   }, [startNewGame])
 
@@ -71,11 +74,11 @@ export default function Hangman() {
 
     const nextStatus = getGameStatus(gameWord, nextGuesses)
     if (nextStatus !== 'playing') {
-      const updatedStreak = nextStreak(streak, nextStatus)
-      setStreak(updatedStreak)
-      saveStreak(updatedStreak)
+      const updatedStats = nextStats(stats, nextStatus)
+      setStats(updatedStats)
+      saveStats(updatedStats)
     }
-  }, [gameWord, guesses, streak])
+  }, [gameWord, guesses, stats])
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -88,8 +91,8 @@ export default function Hangman() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleGuess])
 
-  const handleDifficultyChange = (event) => {
-    setDifficulty(event.target.value)
+  const handleCategoryChange = (event) => {
+    setSelectedCategory(event.target.value)
     startNewGame(event.target.value)
   }
 
@@ -101,16 +104,21 @@ export default function Hangman() {
       <Nav />
 
       <div className='game-controls'>
-        <label htmlFor='difficulty'>Difficulty</label>
-        <select id='difficulty' value={difficulty} onChange={handleDifficultyChange}>
-          {Object.entries(DIFFICULTIES).map(([key, { label }]) => (
+        <label htmlFor='category'>Category</label>
+        <select id='category' value={selectedCategory} onChange={handleCategoryChange}>
+          <option value={ANY_CATEGORY}>Any</option>
+          {Object.entries(CATEGORIES).map(([key, label]) => (
             <option key={key} value={key}>{label}</option>
           ))}
         </select>
-        <span className='streak'>Streak: {streak.current} (best {streak.best})</span>
+        <span className='streak'>Streak: {stats.currentStreak} (best {stats.bestStreak})</span>
       </div>
 
-      <HangmanFigure wrongGuessCount={wrongGuesses.length} isLost={status === 'lost'} />
+      <div className='figure-row'>
+        <ScoreCounter label='Wins' count={stats.wins} variant='wins' />
+        <HangmanFigure wrongGuessCount={wrongGuesses.length} isLost={status === 'lost'} />
+        <ScoreCounter label='Losses' count={stats.losses} variant='losses' />
+      </div>
 
       <p className='guesses-left' aria-live='polite'>
         {MAX_WRONG_GUESSES - wrongGuesses.length} of {MAX_WRONG_GUESSES} wrong guesses left
@@ -120,10 +128,11 @@ export default function Hangman() {
       <Container className='word-container'>
         {loadError && (
           <p className='load-error' role='alert'>
-            {loadError} <button type='button' onClick={() => startNewGame(difficulty)}>Retry</button>
+            {loadError} <button type='button' onClick={() => startNewGame(selectedCategory)}>Retry</button>
           </p>
         )}
         {status === 'loading' && !loadError && <p>Loading word…</p>}
+        {gameWord && <p className='word-category'>Category: {CATEGORIES[wordCategory]}</p>}
         {gameWord && <Word gameWord={gameWord} guesses={guesses} revealAll={status === 'lost'} />}
       </Container>
 
@@ -144,8 +153,8 @@ export default function Hangman() {
       <GameEndModal
         status={status}
         gameWord={gameWord}
-        streak={streak}
-        onPlayAgain={() => startNewGame(difficulty)}
+        stats={stats}
+        onPlayAgain={() => startNewGame(selectedCategory)}
       />
     </div>
   )

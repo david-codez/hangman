@@ -6,7 +6,7 @@ const OUTCOMES = {
   lost: { message: 'You Lost, Better Luck Next Time!', className: 'game-loss' },
 }
 
-export default function GameEndModal({ status, gameWord, streak, onPlayAgain }) {
+export default function GameEndModal({ status, gameWord, stats, onPlayAgain }) {
   const outcome = OUTCOMES[status]
 
   return (
@@ -23,7 +23,7 @@ export default function GameEndModal({ status, gameWord, streak, onPlayAgain }) 
           <Modal.Body>
             <h4 id='game-end-title' className={outcome.className}>{outcome.message}</h4>
             <p className={outcome.className}>The word was: {gameWord}</p>
-            <p>Current win streak: {streak.current} (best: {streak.best})</p>
+            <p>Wins: {stats.wins} · Losses: {stats.losses} · Streak: {stats.currentStreak} (best: {stats.bestStreak})</p>
           </Modal.Body>
           <Modal.Footer id='modal-footer-button'>
             <Button onClick={onPlayAgain} autoFocus>Play Again</Button>

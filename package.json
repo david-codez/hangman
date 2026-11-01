@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --test lib/"
+    "test": "node --test"
   },
   "dependencies": {
     "bootstrap": "^5.3.8",

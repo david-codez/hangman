@@ -91,8 +91,47 @@ a {
   letter-spacing: 0.15em;
 }
 
+.figure-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0 16px;
+}
+
 .hangman-figure {
   text-align: center;
+  flex: 0 1 400px;
+  min-width: 0;
+}
+
+.score-counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 4.5rem;
+}
+
+.score-counter__count {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.score-counter__label {
+  color: var(--muted-text);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.85rem;
+}
+
+.score-counter--wins .score-counter__count {
+  color: var(--correct);
+}
+
+.score-counter--losses .score-counter__count {
+  color: var(--wrong);
 }
 
 .hangman-figure img {
@@ -108,6 +147,19 @@ a {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
+  gap: 0.5rem 1.75rem;
+}
+
+.word-part {
+  display: inline-flex;
+}
+
+.word-category {
+  color: var(--muted-text);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
 }
 
 .word-container {
@@ -124,6 +176,11 @@ a {
   margin: 0 3px;
   height: 50px;
   width: 24px;
+}
+
+.letter--separator {
+  border-bottom-color: transparent;
+  width: 14px;
 }
 
 .letter--missed {
