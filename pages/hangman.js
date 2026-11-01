@@ -1,157 +1,152 @@
-import React, { useState, useEffect } from 'react'
-import { Row, Col, Container } from 'react-bootstrap'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { Container } from 'react-bootstrap'
 import Header from '../components/Header'
 import Nav from '../components/Nav'
 import HangmanFigure from '../components/HangmanFigure'
 import LetterButton from '../components/LetterButton'
 import Word from '../components/Word'
 import GameEndModal from '../components/GameEndModal'
-import getWord  from '../pages/api/GetWord'
-
-export const word = getWord()
+import {
+  ALPHABET,
+  DEFAULT_DIFFICULTY,
+  DIFFICULTIES,
+  MAX_WRONG_GUESSES,
+  applyGuess,
+  getGameStatus,
+  getLetterStatus,
+  getWrongGuesses,
+} from '../lib/game.mjs'
+import { EMPTY_STREAK, loadStreak, nextStreak, saveStreak } from '../lib/streak.mjs'
 
 export default function Hangman() {
+  const [difficulty, setDifficulty] = useState(DEFAULT_DIFFICULTY)
+  const [gameWord, setGameWord] = useState(null)
+  const [guesses, setGuesses] = useState([])
+  const [loadError, setLoadError] = useState(null)
+  const [streak, setStreak] = useState(EMPTY_STREAK)
+  const pendingRequest = useRef(null)
 
+  const startNewGame = useCallback(async (selectedDifficulty) => {
+    pendingRequest.current?.abort()
+    const controller = new AbortController()
+    pendingRequest.current = controller
 
-
-    //sets challenge word
-    const [gameWord, setGameWord] = useState(word)
-    
-
-    //keeps track of when the game is won
-    const [gameWon, setGameWon] = useState(false)
-    const [gameLoss, setGameLoss] = useState(false)
-
-    //keeps track of the letters guessed
-    const [guesses, setGuesses] = useState([])
-    const [wrongGuesses, setWrongGuesses] = useState([])
-    const [correctGuesses, setCorrectGuesses] = useState([])
-
-    // Geame end Modal
-    const [modalShow, setModalShow] = useState(false);
-
-
-    //create letters array
-    const alpha = Array.from(Array(26)).map((e, i) => i + 65);
-    const alphabet = alpha.map((x) => String.fromCharCode(x));
-
-
-
-    //initialize hangman figure images
-    const [imageIndex, setImageIndex] = useState(0)
-
-    //function to determine the amount of correct guesses needed to win
-    const findNumUniqueChars = () => {
-      let string = gameWord.split('')
-      string = new Set(string)
-      return string.size
-    }
-
-
-    //save the value of correct guesses needed to win
-    let goal = findNumUniqueChars()
-    
-
-    // handle user guessing
-    const handleLetterButtonClick =  (e) => {
-
-      //prevent refresh
-      e.preventDefault()
-
-      //grab letter variable
-      let letter = e.target.value
-      
-      // console.log(letter)
-
-      //disable button after guess
-      e.target.disabled = true
-      e.target.className += ' disabled'
-
-      //keeps track of all guesses
-      setGuesses((guesses) => [...guesses, letter])
-
-      //check if guess is correct or incorrect
-      gameWord.includes(letter) ? setCorrectGuesses((correctGuesses) => [...correctGuesses, letter]) : setWrongGuesses((wrongGuesses) => [...wrongGuesses, letter])
-    }
-
-    const resetGame = () => {
-        setGameLoss(false)
-        setGameWon(false)
-        setCorrectGuesses([])
-        setWrongGuesses([])
-        setImageIndex(0)
-        setGuesses([])
-        setModalShow(false)
-        const buttons = document.querySelectorAll(".letter-button")
-        buttons.forEach((button) => {
-                                      button.disabled = false
-                                      button.className = 'letter-button mb-1'
-                                    })
-        setGameWord(getWord())
-    }
-
-    useEffect(() => {
-
-      setImageIndex(wrongGuesses.length)
-      //check for loss
-      if(wrongGuesses.length === 6) {
-        setGameLoss(true)
-        setModalShow(true)
-        setImageIndex(7)
-      } 
-      // console.log(correctGuesses)
-      //check for win
-      if(correctGuesses.length === goal){
-        setGameWon(true)
-        setModalShow(true)
+    setGameWord(null)
+    setGuesses([])
+    setLoadError(null)
+    try {
+      const response = await fetch(`/api/word?difficulty=${selectedDifficulty}`, { signal: controller.signal })
+      if (!response.ok) {
+        throw new Error(`Word request failed with status ${response.status}`)
       }
+      const { word } = await response.json()
+      setGameWord(word)
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        return
+      }
+      console.error(error)
+      setLoadError('Could not load a word. Check your connection and try again.')
+    }
+  }, [])
+
+  useEffect(() => {
+    setStreak(loadStreak())
+    startNewGame(DEFAULT_DIFFICULTY)
+    return () => pendingRequest.current?.abort()
+  }, [startNewGame])
+
+  const status = gameWord ? getGameStatus(gameWord, guesses) : 'loading'
+  const wrongGuesses = gameWord ? getWrongGuesses(gameWord, guesses) : []
+
+  const handleGuess = useCallback((letter) => {
+    if (!gameWord) {
       return
+    }
+    const nextGuesses = applyGuess(gameWord, guesses, letter)
+    if (nextGuesses === guesses) {
+      return
+    }
+    setGuesses(nextGuesses)
 
-    }, [
-          setGameWord,  
-          gameLoss, 
-          setGameLoss, 
-          gameWon, 
-          setGameWon, 
-          setImageIndex, 
-          correctGuesses, 
-          wrongGuesses, 
-          goal
-        ])
+    const nextStatus = getGameStatus(gameWord, nextGuesses)
+    if (nextStatus !== 'playing') {
+      const updatedStreak = nextStreak(streak, nextStatus)
+      setStreak(updatedStreak)
+      saveStreak(updatedStreak)
+    }
+  }, [gameWord, guesses, streak])
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.ctrlKey || event.metaKey || event.altKey || event.target.closest('input, select, textarea')) {
+        return
+      }
+      handleGuess(event.key.toUpperCase())
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleGuess])
 
+  const handleDifficultyChange = (event) => {
+    setDifficulty(event.target.value)
+    startNewGame(event.target.value)
+  }
 
+  const isGameOver = status === 'won' || status === 'lost'
 
   return (
     <div>
-        <Header />
-        <Nav />
-        <HangmanFigure imageIndex={imageIndex} />
-        <Container className='word-container'>
-          <Word gameWord={gameWord} correctGuesses={correctGuesses} />
-        </Container>
-       
+      <Header />
+      <Nav />
 
-        <Container id='button-container'>
-          
-          <Row className='button-row'>
-            <>
-             {alphabet.map((letter, index) => <LetterButton letter={letter} handleClick={handleLetterButtonClick} key={index} />)}
-            </>
-          </Row>
-          
-        </Container>
-        
-        <GameEndModal
-        show={modalShow}
-        onHide={() => resetGame()}
-        gameLoss={gameLoss}
-        gameWon={gameWon}
+      <div className='game-controls'>
+        <label htmlFor='difficulty'>Difficulty</label>
+        <select id='difficulty' value={difficulty} onChange={handleDifficultyChange}>
+          {Object.entries(DIFFICULTIES).map(([key, { label }]) => (
+            <option key={key} value={key}>{label}</option>
+          ))}
+        </select>
+        <span className='streak'>Streak: {streak.current} (best {streak.best})</span>
+      </div>
+
+      <HangmanFigure wrongGuessCount={wrongGuesses.length} isLost={status === 'lost'} />
+
+      <p className='guesses-left' aria-live='polite'>
+        {MAX_WRONG_GUESSES - wrongGuesses.length} of {MAX_WRONG_GUESSES} wrong guesses left
+        {wrongGuesses.length > 0 && <> · Missed: <span className='missed-letters'>{wrongGuesses.join(' ')}</span></>}
+      </p>
+
+      <Container className='word-container'>
+        {loadError && (
+          <p className='load-error' role='alert'>
+            {loadError} <button type='button' onClick={() => startNewGame(difficulty)}>Retry</button>
+          </p>
+        )}
+        {status === 'loading' && !loadError && <p>Loading word…</p>}
+        {gameWord && <Word gameWord={gameWord} guesses={guesses} revealAll={status === 'lost'} />}
+      </Container>
+
+      <Container id='button-container'>
+        <div className='button-row'>
+          {ALPHABET.map((letter) => (
+            <LetterButton
+              key={letter}
+              letter={letter}
+              status={gameWord ? getLetterStatus(gameWord, guesses, letter) : 'unused'}
+              disabled={!gameWord || isGameOver || guesses.includes(letter)}
+              onGuess={handleGuess}
+            />
+          ))}
+        </div>
+      </Container>
+
+      <GameEndModal
+        status={status}
         gameWord={gameWord}
+        streak={streak}
+        onPlayAgain={() => startNewGame(difficulty)}
       />
     </div>
   )
 }
-
-
-
