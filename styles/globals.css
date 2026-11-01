@@ -76,12 +76,25 @@ a {
   margin-bottom: 0.5rem;
 }
 
-.streak,
-.guesses-left {
+.reset-stats-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--muted-text);
+  border-radius: 4px;
+  background: transparent;
   color: var(--muted-text);
+  padding: 0.15rem 0.6rem;
+  font-size: 0.9rem;
+}
+
+.reset-stats-button:hover {
+  border-color: var(--page-text);
+  color: var(--page-text);
 }
 
 .guesses-left {
+  color: var(--muted-text);
   text-align: center;
 }
 

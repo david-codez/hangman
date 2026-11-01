@@ -8,7 +8,7 @@ A Next.js hangman game. Guess the hidden word one letter at a time — click the
 - **Multi-word answers** like "Costa Rica" or "Cayenne Pepper": spaces, hyphens and apostrophes are shown from the start, and only letters need guessing.
 - **Keyboard play**: type letters to guess; repeated letters and non-letters are ignored.
 - **Feedback**: correct guesses turn green, wrong ones turn red and are listed as missed letters, with a count of wrong guesses left. When you lose, the letters you missed are revealed in red.
-- **Scoreboard**: wins and losses are tallied on either side of the figure, alongside your current and best win streak. Stats are saved in the browser's localStorage, so they survive reloads but are per-browser.
+- **Scoreboard**: wins and losses are tallied on either side of the figure, and the end-of-game popup shows your current and best win streak. Stats are saved in the browser's localStorage, so they survive reloads but are per-browser. A "Reset" button (with a confirmation) sets them back to zero.
 - Light and dark mode follow the system setting.
 
 ## Getting started

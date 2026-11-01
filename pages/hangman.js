@@ -96,6 +96,14 @@ export default function Hangman() {
     startNewGame(event.target.value)
   }
 
+  const handleResetStats = () => {
+    if (!window.confirm('Reset your wins, losses and win streak to zero?')) {
+      return
+    }
+    setStats(EMPTY_STATS)
+    saveStats(EMPTY_STATS)
+  }
+
   const isGameOver = status === 'won' || status === 'lost'
 
   return (
@@ -111,7 +119,18 @@ export default function Hangman() {
             <option key={key} value={key}>{label}</option>
           ))}
         </select>
-        <span className='streak'>Streak: {stats.currentStreak} (best {stats.bestStreak})</span>
+        <button
+          type='button'
+          className='reset-stats-button'
+          onClick={handleResetStats}
+          title='Set wins, losses and win streak back to zero'
+        >
+          <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
+            <path d='M21 12a9 9 0 1 1-3-6.7' />
+            <polyline points='21 3 21 9 15 9' />
+          </svg>
+          Reset
+        </button>
       </div>
 
       <div className='figure-row'>
